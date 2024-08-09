@@ -25,6 +25,9 @@ const travelPreferenceSchema = new mongoose.Schema({
   activities: [{
       type: String,
   }],
+  travelMedium:{
+    type:String
+  }
 }, { timestamps: true });
 const TravelPreference = mongoose.model('TravelPreference', travelPreferenceSchema);
 
