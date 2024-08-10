@@ -3,7 +3,7 @@ import express from "express"
 import cookieParser from "cookie-parser";
 
 
-import { errorHandler } from "./middlewares/errorHandler.js";
+
 import userRoutes from "./routes/user.routes.js"
 
 
@@ -20,6 +20,6 @@ app.use(cookieParser());
 
 app.use("/users",userRoutes)
 
-app.use(errorHandler)
+
 
 export {app}
