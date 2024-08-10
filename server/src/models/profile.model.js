@@ -18,6 +18,9 @@ const profileSchema = new mongoose.Schema({
       type: String,
       enum: ['Male', 'Female', 'Other'],
   },
+  interests:{
+type:String
+  },
   photos: [{
       url: String,
   }],

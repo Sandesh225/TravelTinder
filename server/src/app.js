@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 
 
 import userRoutes from "./routes/user.routes.js"
-
+import profileRoutes from './routes/profile.routes.js';
 
 
 
@@ -19,6 +19,7 @@ app.use(cookieParser());
 
 
 app.use("/users",userRoutes)
+app.use("/profile",profileRoutes)
 
 
 
