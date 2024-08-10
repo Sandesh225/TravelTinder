@@ -1,62 +1,86 @@
+// models/user.model.js
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs"
-const userSchema=new mongoose.Schema({
-  username:{
-    type:String,
-    required:true,
-    unique:true
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-},
-password: {
-  type: String,
-  required: true,
-  select:false
-},
-profile: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: 'Profile',
-},
-travelPreferences: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: 'TravelPreference',
-},
-matches:[{
-  type:mongoose.Schema.Types.ObjectId,
-  ref:'Match'
-}]
-},
-{timestamps:true})
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 10);
+const userSchema = new mongoose.Schema(
+  {
+    username: {
+      type: String,
+      required: [true, "Username is required"],
+      unique: true,
+      trim: true,
+      minlength: [3, "Username must be at least 3 characters long"],
+    },
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+      trim: true,
+      lowercase: true,
+      match: [
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        "Please provide a valid email address",
+      ],
+    },
+    password: {
+      type: String,
+      required: [true, "Password is required"],
+     
+    },
+    profile: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Profile",
+    },
+    travelPreferences: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "TravelPreference",
+    },
+    matches: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Match",
+      },
+    ],
+  },
+  { timestamps: true }
+);
+
+// Hash password before saving the user
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 12);
   next();
 });
-userSchema.methods.isPasswordCorrect=async function(password){
-  return await bcrypt.compare(password,this.password)
+
+// Compare entered password with hashed password
+userSchema.methods.isPasswordCorrect = async function (password) {
+ 
+  return bcrypt.compare(password, this.password);
 };
-userSchema.methods.generateAccessToken=function(){
-  return jwt.sign({
-    id:this._id,
-    email:this.email,
-  },
-  process.env.ACCESS_TOKEN_SECRET,
-{ expiresIn:process.env.ACCESS_TOKEN_EXPIRY,})
-}
+
+// Generate JWT Access Token
+userSchema.methods.generateAccessToken = function () {
+  return jwt.sign(
+    {
+      id: this._id,
+      email: this.email,
+    },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+  );
+};
+
+// Generate JWT Refresh Token
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
       id: this._id,
     },
     process.env.REFRESH_TOKEN_SECRET,
-    {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
-    }
+    { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
   );
 };
-const User = mongoose.model('Users', userSchema);
-export {User}
+
+const User = mongoose.model("User", userSchema);
+export { User };
