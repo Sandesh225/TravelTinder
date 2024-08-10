@@ -1,18 +1,20 @@
-import { ApiError } from "./ApiError.js"
+// middlewares/errorHandler.js
+import { ApiError } from "./ApiError.js";
 
+const errorHandler = (err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
 
-const errorHandler=(err,req,res,next)=>{
-  if (err instanceof ApiError){
-    return res.status(err.statusCode).json({
-      status:'error',
-      message:err.message,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-    })
-  }
-  res.status(500).json({
-    status: 'error',
-    message: 'Something went wrong!',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-});
+  const response = {
+    status: "error",
+    message: err.isOperational ? err.message : "Internal Server Error",
+  };
+
+  console.error(`[${new Date().toISOString()}] Error: ${err.message}`, {
+    statusCode,
+    stack: err.stack,
+  });
+
+  res.status(statusCode).json(response);
 };
-export {errorHandler}
+
+export { errorHandler };
