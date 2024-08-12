@@ -1,11 +1,19 @@
-import { Router } from "express";
+import express from 'express';
+import { verifyJWT } from '../middlewares/auth.middleware.js';
+import {
+  createProfile,
+  getProfile,
+  updateProfile,
+  deleteProfile,
+  getAllProfile
+} from '../controllers/profile.controller.js';
 
-import { createProfile, getProfile, updateProfile } from "../controllers/profile.controller.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+const router = express.Router();
 
-const router=Router();
+router.post('/create', verifyJWT, createProfile);
+router.get('/:userId', verifyJWT, getProfile);
+router.get('/', verifyJWT, getAllProfile);
+router.put('/', verifyJWT, updateProfile);
+router.delete('/', verifyJWT, deleteProfile);
 
-router.route("/create").post(verifyJWT, createProfile)
-router.route("/profile/:profileId").put(verifyJWT,updateProfile)
-router.route("/profile").get(verifyJWT,getProfile)
 export default router;
