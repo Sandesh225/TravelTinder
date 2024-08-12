@@ -1,9 +1,15 @@
-import { Router } from "express";
-import { getUserProfile, loginUser, registerUser } from "../controllers/user.controller.js";
+import express from "express";
+import { registerUser, loginUser, getUser, updateUser, deleteUser, getAllUsers, logoutUser } from "../controllers/user.controller.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 
-const router=Router();
+const router = express.Router();
 
-router.route("/register").post(registerUser);
-router.route("/login").post(loginUser);
-router.route("/profile").get(getUserProfile);
+router.post("/register", registerUser);
+router.post("/login", loginUser);
+router.post("/logout", verifyJWT, logoutUser); // Moved under verifyJWT
+router.get("/:userId", verifyJWT, getUser);
+router.put("/:userId", verifyJWT, updateUser);
+router.delete("/:userId", verifyJWT, deleteUser);
+router.get("/", verifyJWT, getAllUsers);
+
 export default router;
