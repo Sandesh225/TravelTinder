@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createMatch, getUserMatches, updateMatchStatus } from "../controllers/match.controller.js";
+import { createMatch, deleteMatch, getUserMatches, updateMatchStatus } from "../controllers/match.controller.js";
 
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -13,5 +13,6 @@ router.route("/").get(verifyJWT, getUserMatches);
 
 // Route to update the status of a specific match
 router.route("/:matchId").patch(verifyJWT, updateMatchStatus);
+router.route("/:matchId").patch(verifyJWT, deleteMatch );
 
 export default router;
