@@ -1,34 +1,58 @@
-
 import mongoose from 'mongoose';
-const travelPreferenceSchema = new mongoose.Schema({
-  user: {
+
+const travelPreferenceSchema = new mongoose.Schema(
+  {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-  },
-  preferredDestinations: [{
-      type: String,
+    },
+    preferredDestinations: {
+      type: [String],
       required: true,
-  }],
-  travelDates: {
-      start: Date,
-      end: Date,
-  },
-  preferredGroupSize: {
+    },
+    travelDates: {
+      start: {
+        type: Date,
+        required: true,
+      },
+      end: {
+        type: Date,
+        required: true,
+        validate: {
+          validator: function (v) {
+            return v > this.travelDates.start;
+          },
+          message: 'End date must be after start date',
+        },
+      },
+    },
+    preferredGroupSize: {
       type: String,
       enum: ['Solo', 'Couple', 'Group'],
-  },
-  budgetRange: {
-      min: Number,
-      max: Number,
-  },
-  activities: [{
+      required: true,
+    },
+    budgetRange: {
+      min: {
+        type: Number,
+        default: 0,
+      },
+      max: {
+        type: Number,
+        required: true,
+      },
+    },
+    activities: {
+      type: [String],
+      required: true,
+    },
+    travelMedium: {
       type: String,
-  }],
-  travelMedium:{
-    type:String
-  }
-}, { timestamps: true });
-const TravelPreference = mongoose.model('TravelPreference', travelPreferenceSchema);
+      required: true,
+    },
+  },
+  { timestamps: true }
+);
 
-export {TravelPreference}
+const TravelPreference = mongoose.model('TravelPreference', travelPreferenceSchema);
+export { TravelPreference };
