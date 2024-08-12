@@ -1,34 +1,44 @@
+import mongoose from 'mongoose';
 
-import mongoose  from 'mongoose';
-
-const profileSchema = new mongoose.Schema({
-  user: {
+const profileSchema = new mongoose.Schema(
+  {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-  },
-  bio: {
+    },
+    bio: {
       type: String,
-  },
-  age: {
+      trim: true,
+    },
+    age: {
       type: Number,
       required: true,
-  },
-  gender: {
+      min: 18,
+      max: 100,
+    },
+    gender: {
       type: String,
       enum: ['Male', 'Female', 'Other'],
-  },
-  interests:{
-type:String
-  },
-  photos: [{
-      url: String,
-  }],
-  location: {
-      type: String,
       required: true,
+    },
+    interests: {
+      type: [String],
+      required: true,
+    },
+    photos: [
+      {
+        url: String,
+      },
+    ],
+    location: {
+      type: String,
+      trim: true,
+    },
   },
-}, { timestamps: true });
+  { timestamps: true }
+);
+
 
 const Profile = mongoose.model('Profile', profileSchema);
-export {Profile}
+export { Profile };
