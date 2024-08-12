@@ -1,4 +1,3 @@
-// models/user.model.js
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -8,7 +7,6 @@ const userSchema = new mongoose.Schema(
     username: {
       type: String,
       required: [true, "Username is required"],
-      unique: true,
       trim: true,
       minlength: [3, "Username must be at least 3 characters long"],
     },
@@ -26,7 +24,6 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
-     
     },
     profile: {
       type: mongoose.Schema.Types.ObjectId,
@@ -46,32 +43,28 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Hash password before saving the user
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
 
-// Compare entered password with hashed password
 userSchema.methods.isPasswordCorrect = async function (password) {
- 
   return bcrypt.compare(password, this.password);
 };
 
-// Generate JWT Access Token
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
       id: this._id,
       email: this.email,
+      username:this.username
     },
     process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
   );
 };
 
-// Generate JWT Refresh Token
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
