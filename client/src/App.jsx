@@ -1,33 +1,49 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Home from "./components/Home";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-import UserList from "./UserList/UserList";
-import Logout from "./pages/Logout/Logout";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { useSelector } from "react-redux";
+import Hero from "./components/Hero/Hero";
+import Home from "./components/Home/Home";
+import ProfileSetup from "./components/ProfileSetup/ProfileSetup";
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
-import ProfileSetup from "./Profile/ProfileSetup";
-import { ToastContainer } from "react-toastify";
+import Navbar from "./components/Navbar/Navbar";
+import UserList from "./components/Userlist/UserList";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "./index.css";
+function App() {
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
-const App = () => (
-  <Router>
-    <Navbar />
-    <main className="bg-background-light min-h-screen">
+  return (
+    <Router>
+      <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/logout" element={<Logout />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Hero />} />
+        <Route
+          path="/home"
+          element={isAuthenticated ? <Home /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/profile-setup"
+          element={
+            isAuthenticated ? <ProfileSetup /> : <Navigate to="/login" />
+          }
+        />
         <Route path="/login" element={<Login />} />
-        <Route path="/users" element={<UserList />} />
-        <Route path="/profile" element={<ProfileSetup />} />
+        <Route path="/register" element={<Register />} />
+        <Route
+          path="/user-list"
+          element={isAuthenticated ? <UserList /> : <Navigate to="/login" />}
+        />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </main>
-    <Footer />
-    <ToastContainer position="top-center" />
-  </Router>
-);
+      <ToastContainer position="top-center" />
+    </Router>
+  );
+}
 
 export default App;
