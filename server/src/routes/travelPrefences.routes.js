@@ -13,12 +13,12 @@ const router = express.Router();
 router.post('/create', verifyJWT, createTravelPreference);
 
 // Route to get all travel preferences for the authenticated user
-router.get('/get', verifyJWT, getTravelPreferences);
+router.get('/', verifyJWT, getTravelPreferences);
 
 // Route to update a specific travel preference by ID
 router.put('/update/:preferenceId', verifyJWT, updateTravelPreference);
 
 // Route to delete a specific travel preference by ID
-router.delete('/travel-preference/:preferenceId', verifyJWT, deleteTravelPreference);
+router.delete('/delete/:preferenceId', verifyJWT, deleteTravelPreference);
 
 export default router;
