@@ -1,5 +1,5 @@
 import express from "express";
-import { registerUser, loginUser, getUser, updateUser, deleteUser, getAllUsers, logoutUser } from "../controllers/user.controller.js";
+import { registerUser, loginUser, getUser, updateUser, deleteUser, getAllUsers, logoutUser, refreshAccessToken } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
@@ -11,5 +11,6 @@ router.get("/:userId", verifyJWT, getUser);
 router.put("/:userId", verifyJWT, updateUser);
 router.delete("/:userId", verifyJWT, deleteUser);
 router.get("/", verifyJWT, getAllUsers);
+router.post("/refresh-token", refreshAccessToken);
 
 export default router;
