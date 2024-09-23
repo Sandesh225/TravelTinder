@@ -1,24 +1,27 @@
 import express from 'express';
-import { verifyJWT } from '../middlewares/auth.middleware.js'; // Ensure the correct import path
 import {
-  createTravelPreference,
-  getTravelPreferences,
-  updateTravelPreference,
-  deleteTravelPreference
-} from '../controllers/travelPrefences.controller.js'; // Ensure the correct import path
+  createOrUpdateTravelPreference,
+  getTravelPreference,
+  deleteTravelPreference,
+  getAllTravelPreferences,
+} from '../controllers/travelPrefences.controller.js';
+import { verifyJWT } from '../middlewares/auth.middleware.js';
+import { requireRole } from '../middlewares/auth.middleware.js'; // For admin-only routes
 
 const router = express.Router();
 
-// Route to create a new travel preference
-router.post('/create', verifyJWT, createTravelPreference);
+// Protected routes (require authentication via JWT)
 
-// Route to get all travel preferences for the authenticated user
-router.get('/', verifyJWT, getTravelPreferences);
+// Create or update travel preferences for the authenticated user
+router.post('/', verifyJWT, createOrUpdateTravelPreference);
 
-// Route to update a specific travel preference by ID
-router.put('/update/:preferenceId', verifyJWT, updateTravelPreference);
+// Get travel preferences for the authenticated user
+router.get('/me', verifyJWT, getTravelPreference);
 
-// Route to delete a specific travel preference by ID
-router.delete('/delete/:preferenceId', verifyJWT, deleteTravelPreference);
+// Delete travel preferences for the authenticated user
+router.delete('/me', verifyJWT, deleteTravelPreference);
+
+// Admin-only route: Get all travel preferences
+router.get('/', verifyJWT, requireRole('admin'), getAllTravelPreferences);
 
 export default router;
