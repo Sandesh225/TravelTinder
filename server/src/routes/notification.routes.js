@@ -1,19 +1,30 @@
-import { Router } from "express";
-import { createNotification, deleteNotification, getUserNotifications, markNotificationAsRead } from "../controllers/notification.controller.js";
+import express from 'express';
+import {
+  createNotification,
+  getNotifications,
+  getUnreadNotifications,
+  markNotificationAsRead,
+  deleteNotification,
+} from '../controllers/notification.controller.js';
+import { verifyJWT } from '../middlewares/auth.middleware.js';
 
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+const router = express.Router();
 
-const router = Router();
+// Routes are protected by JWT authentication middleware
 
-// Route to create a new notification
-router.route("/").post(verifyJWT, createNotification);
+// Create a new notification
+router.post('/', verifyJWT, createNotification);
 
-// Route to get all notifications for the authenticated user
-router.route("/").get(verifyJWT, getUserNotifications);
+// Get all notifications for the authenticated user
+router.get('/', verifyJWT, getNotifications);
 
-// Route to mark a specific notification as read
-router.route("/:notificationId/read").patch(verifyJWT, markNotificationAsRead);
+// Get unread notifications for the authenticated user
+router.get('/unread', verifyJWT, getUnreadNotifications);
 
-router.route("./:notificationId").delete(verifyJWT,deleteNotification)
+// Mark a notification as read
+router.put('/:notificationId/read', verifyJWT, markNotificationAsRead);
+
+// Delete a notification
+router.delete('/:notificationId', verifyJWT, deleteNotification);
 
 export default router;
