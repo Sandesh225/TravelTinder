@@ -1,65 +1,75 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   useGetMatchesQuery,
-  useUpdateMatchStatusMutation,
-  useDeleteMatchMutation,
+  useHandleMatchMutation,
 } from "../../features/apiSlice";
-import { useDispatch } from "react-redux";
+import Spinner from "../Layout/Spinner";
 import { toast } from "react-toastify";
 
 const MatchesPage = () => {
-  const { data: matches, error, isLoading } = useGetMatchesQuery();
-  const [updateMatchStatus] = useUpdateMatchStatusMutation();
-  const [deleteMatch] = useDeleteMatchMutation();
-  const dispatch = useDispatch();
+  const { data: matchesData, error, isLoading } = useGetMatchesQuery();
+  const [handleMatch] = useHandleMatchMutation();
 
-  if (isLoading) {
-    return <div>Loading matches...</div>;
-  }
-
-  if (error) {
-    return <div>Error loading matches</div>;
-  }
-
-  const handleMatchStatus = async (matchId, status) => {
+  const handleDecision = async (matchId, status) => {
     try {
-      await updateMatchStatus({ matchId, status });
+      await handleMatch({ matchId, status });
       toast.success(`Match ${status} successfully!`);
     } catch (error) {
-      toast.error("Failed to update match status");
+      toast.error(`Error ${status} match`);
     }
   };
 
-  const handleDeleteMatch = async (matchId) => {
-    try {
-      await deleteMatch(matchId);
-      toast.success("Match deleted successfully!");
-    } catch (error) {
-      toast.error("Failed to delete match");
-    }
-  };
+  if (isLoading) return <Spinner />;
+  if (error)
+    return <p className="text-center text-red-500">Error loading matches</p>;
+
+  const matches = matchesData?.data || [];
 
   return (
-    <div className="matches-page">
-      <h1>Your Matches</h1>
-      {matches?.length ? (
-        matches.map((match) => (
-          <div key={match._id} className="match-item">
-            <p>Matched with: {match.user.name}</p>
-            <p>Status: {match.status}</p>
-            <button onClick={() => handleMatchStatus(match._id, "Accepted")}>
-              Accept
-            </button>
-            <button onClick={() => handleMatchStatus(match._id, "Rejected")}>
-              Reject
-            </button>
-            <button onClick={() => handleDeleteMatch(match._id)}>Delete</button>
-          </div>
-        ))
-      ) : (
-        <p>No matches found.</p>
-      )}
-    </div>
+    <section className="container mx-auto p-8">
+      <h1 className="text-4xl font-bold text-center mb-8">Your Matches</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {matches.length === 0 ? (
+          <p className="text-center text-gray-500">No matches found.</p>
+        ) : (
+          matches.map((match) => (
+            <div
+              key={match._id}
+              className="bg-white shadow-lg rounded-lg p-6 text-center"
+            >
+              <img
+                src={match.user2.photos?.[0]?.url || "/default-profile.png"}
+                alt={match.user2.username || "Profile picture"}
+                className="w-32 h-32 mx-auto rounded-full mb-4"
+              />
+              <h2 className="text-2xl font-bold">
+                {match.user2.username || "Anonymous"}
+              </h2>
+              <p className="text-gray-600">
+                {match.user2.bio || "No bio available"}
+              </p>
+
+              <div className="mt-4">
+                {/* Accept or Reject match buttons */}
+                <button
+                  className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 mr-2"
+                  onClick={() => handleDecision(match._id, "Accepted")}
+                >
+                  Accept
+                </button>
+                <button
+                  className="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
+                  onClick={() => handleDecision(match._id, "Rejected")}
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </section>
   );
 };
 
