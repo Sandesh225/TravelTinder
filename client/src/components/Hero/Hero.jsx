@@ -1,16 +1,37 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-function Hero() {
+const Hero = () => {
   return (
-    <div className="bg-hero-pattern bg-cover bg-center h-screen flex flex-col justify-center items-center text-center text-white">
-      <h1 className="text-5xl font-bold mb-4">Welcome to My App</h1>
-      <p className="text-xl mb-8">Your journey begins here. Join us today.</p>
-      <Link to="/register" className="bg-blue-600 px-6 py-3 rounded text-xl">
-        Get Started
-      </Link>
+    <div
+      className="bg-cover bg-center h-screen"
+      style={{ backgroundImage: `url('/images/hero-background.jpg')` }}
+    >
+      <div className="bg-black bg-opacity-50 h-full flex flex-col justify-center items-center text-white text-center p-8">
+        <h1 className="text-5xl font-bold mb-4">
+          Find Your Perfect Travel Match
+        </h1>
+        <p className="text-xl mb-6">
+          Connect with travel enthusiasts, share experiences, and embark on
+          unforgettable adventures.
+        </p>
+        <div className="space-x-4">
+          <Link
+            to="/explore"
+            className="bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 transition duration-300"
+          >
+            Explore Profiles
+          </Link>
+          <Link
+            to="/register"
+            className="bg-green-500 text-white py-3 px-6 rounded-md hover:bg-green-600 transition duration-300"
+          >
+            Sign Up Now
+          </Link>
+        </div>
+      </div>
     </div>
   );
-}
+};
 
 export default Hero;
