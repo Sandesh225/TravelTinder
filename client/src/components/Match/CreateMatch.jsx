@@ -6,12 +6,12 @@ const CreateMatch = () => {
   const [userId, setUserId] = useState("");
   const [createMatch] = useCreateMatchMutation();
 
-  const handleCreateMatch = async () => {
+  const handleMatchUpdate = async (matchId, status) => {
     try {
-      await createMatch({ userId });
-      toast.success("Match created successfully!");
+      await updateMatchStatus({ matchId, status });
+      toast.success("Match updated successfully!");
     } catch (error) {
-      toast.error("Failed to create match");
+      toast.error("Error updating match status");
     }
   };
 
@@ -24,7 +24,7 @@ const CreateMatch = () => {
         onChange={(e) => setUserId(e.target.value)}
         placeholder="Enter user ID to match with"
       />
-      <button onClick={handleCreateMatch}>Create Match</button>
+      <button onClick={handleMatchUpdate}>Create Match</button>
     </div>
   );
 };
