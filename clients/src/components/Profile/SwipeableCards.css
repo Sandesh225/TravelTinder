@@ -1,0 +1,34 @@
+.swipeableCards {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cardsContainer {
+  width: 90vw;
+  max-width: 600px;
+  height: 80vh;
+}
+
+.card {
+  position: absolute;
+  background-size: cover;
+  background-position: center;
+  width: 100%;
+  max-width: 600px;
+  height: 80vh;
+  border-radius: 20px;
+  box-shadow: 0px 18px 30px -10px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.swipe {
+  position: absolute;
+  will-change: transform;
+}
