@@ -1,31 +1,24 @@
 import express from 'express';
 import {
-  createMatch,
-  getUserMatches,
-  updateMatchStatus,
-  deleteMatch,
-  getAllMatches,
+  swipeUser,
+  getMatches,
+  unmatchUser,
+  getPendingMatches
 } from '../controllers/match.controller.js';
-import { verifyJWT } from '../middlewares/auth.middleware.js';
-import { requireRole } from '../middlewares/auth.middleware.js'; // For admin-only routes
+import { verifySession } from '../middlewares/auth.middleware.js'; // Middleware for session verification
 
 const router = express.Router();
 
-// Protected routes (require authentication via JWT)
+// Swipe on a user (requires session)
+router.post('/swipe', verifySession, swipeUser);
 
-// Create a new match between two users
-router.post('/', verifyJWT, createMatch);
+// Get all matches for the current user (requires session)
+router.get('/matches', verifySession, getMatches);
 
-// Get all matches for the authenticated user
-router.get('/', verifyJWT, getUserMatches);
+// Unmatch a user (requires session)
+router.delete('/matches/:matchId', verifySession, unmatchUser);
 
-// Update match status (Matched or Rejected)
-router.put('/:matchId', verifyJWT, updateMatchStatus);
-
-// Delete a match (admin-only route)
-router.delete('/:matchId', verifyJWT, requireRole('admin'), deleteMatch);
-
-// Admin-only route: Get all matches (for moderation or analytics)
-router.get('/admin/matches', verifyJWT, requireRole('admin'), getAllMatches);
+// Get pending matches for the current user (requires session)
+router.get('/matches/pending', verifySession, getPendingMatches);
 
 export default router;
