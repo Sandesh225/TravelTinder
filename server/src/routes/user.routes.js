@@ -1,4 +1,4 @@
-import express from 'express';
+import express from "express";
 import {
   registerUser,
   loginUser,
@@ -7,25 +7,25 @@ import {
   deleteUser,
   getAllUsers,
   logoutUser,
-  refreshAccessToken,
-} from '../controllers/user.controller.js';
-import { requireRole, verifyJWT } from '../middlewares/auth.middleware.js';
+  changeCurrentPassword,
+} from "../controllers/user.controller.js";
+
+import { verifySession, requireRole } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-// Public routes (no authentication required)
-router.post('/register', registerUser);  // Register a new user
-router.post('/login', loginUser);        // Log in a user
-router.post('/refresh-token', refreshAccessToken);  // Refresh access token
+// Public routes
+router.post("/register", registerUser);       // Register a new user
+router.post("/login", loginUser);             // Log in a user
 
-// Protected routes (require authentication)
-router.post('/logout', verifyJWT, logoutUser);  // Log out a user
-router.get('/me', verifyJWT, getCurrentUser);   // Get current authenticated user's profile
-router.put('/me', verifyJWT, updateUser);       // Update current authenticated user's profile
+// Protected routes (Require session-based authentication)
+router.post("/logout", verifySession, logoutUser);  // Log out the current user
+router.get("/me", verifySession, getCurrentUser);   // Get details of the current logged-in user
+router.put("/me", verifySession, updateUser);       // Update current user's information
+router.put("/me/password", verifySession, changeCurrentPassword); // Change current user's password
 
-// Admin-only routes (require 'admin' role)
-router.delete('/:id', verifyJWT, requireRole('admin'), deleteUser);   // Delete user by ID
-router.get('/', verifyJWT, requireRole('admin'), getAllUsers);        // Get all users (admin only)
+// Admin-protected routes (Require both authentication and admin role)
+router.delete("/:id", verifySession, requireRole("admin"), deleteUser); // Delete a user (admin only)
+router.get("/", verifySession,  getAllUsers);      // Get all users (admin only)
 
 export default router;
- 
