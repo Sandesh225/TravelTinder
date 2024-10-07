@@ -1,27 +1,40 @@
 import express from 'express';
 import {
-  createOrUpdateTravelPreference,
+  createTravelPreference,
   getTravelPreference,
+  updateTravelPreference,
   deleteTravelPreference,
   getAllTravelPreferences,
-} from '../controllers/travelPrefences.controller.js';
-import { verifyJWT } from '../middlewares/auth.middleware.js';
-import { requireRole } from '../middlewares/auth.middleware.js'; // For admin-only routes
+  findMatches,
+  swipeRight,
+  confirmMatch
+} from '../controllers/travelPrefences.controller.js'
+import { verifySession } from '../middlewares/auth.middleware.js'; // Middleware for session verification
 
 const router = express.Router();
 
-// Protected routes (require authentication via JWT)
+// Create or update travel preferences (requires session)
+router.post('/preferences', verifySession, createTravelPreference);
 
-// Create or update travel preferences for the authenticated user
-router.post('/', verifyJWT, createOrUpdateTravelPreference);
+// Get the current user's travel preferences (requires session)
+router.get('/preferences/me', verifySession, getTravelPreference);
 
-// Get travel preferences for the authenticated user
-router.get('/me', verifyJWT, getTravelPreference);
+// Update the current user's travel preferences (requires session)
+router.put('/preferences/me', verifySession, updateTravelPreference);
 
-// Delete travel preferences for the authenticated user
-router.delete('/me', verifyJWT, deleteTravelPreference);
+// Delete the current user's travel preferences (requires session)
+router.delete('/preferences/me', verifySession, deleteTravelPreference);
 
-// Admin-only route: Get all travel preferences
-router.get('/', verifyJWT, requireRole('admin'), getAllTravelPreferences);
+// Get all travel preferences (Admin-only, requires session)
+router.get('/preferences', verifySession, getAllTravelPreferences);
+
+// Find matches based on travel preferences (requires session)
+router.get('/preferences/match', verifySession, findMatches);
+
+// Swipe right (requires session)
+router.post('/preferences/swipe/:targetUserId', verifySession, swipeRight);
+
+// Confirm match when both users swipe right (requires session)
+router.get('/preferences/confirm-match/:matchId', verifySession, confirmMatch);
 
 export default router;
