@@ -95,6 +95,28 @@ export const apiSlice = createApi({
         body: travelData,
       }),
     }),
+    getTravelPreference: builder.query({
+      query: () => '/travel-preferences/preferences/me',
+    }),
+    updateTravelPreference: builder.mutation({
+      query: (travelData) => ({
+        url: '/travel-preferences/preferences',
+        method: 'PUT',
+        body: travelData,
+      }),
+    }),
+    deleteTravelPreference: builder.mutation({
+      query: () => ({
+        url: '/travel-preferences/preferences',
+        method: 'DELETE',
+      }),
+    }),
+    getAllTravelPreferences: builder.query({
+      query: () => '/travel-preferences/preferences/all',
+    }),
+
+
+
 
 
     // Match Endpoints
@@ -150,6 +172,9 @@ export const {
   useGetPendingMatchesQuery,
   useUnmatchUserMutation,
 
-
-  useCreateTravelPreferenceMutation
+useCreateTravelPreferenceMutation,
+  useGetTravelPreferenceQuery,
+  useUpdateTravelPreferenceMutation,
+  useDeleteTravelPreferenceMutation,
+  useGetAllTravelPreferencesQuery,
 } = apiSlice;
