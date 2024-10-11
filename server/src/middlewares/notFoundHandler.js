@@ -1,8 +1,5 @@
-// Middleware to handle 404 errors
 const notFoundHandler = (req, res, next) => {
-  const error = new Error(`Not Found - ${req.originalUrl}`);
-  res.status(404);
+  const error = new ApiError(404, `Not Found - ${req.originalUrl}`);
   next(error);
 };
-
 export { notFoundHandler };
