@@ -4,12 +4,24 @@ import { ApiError } from "../middlewares/ApiError.js";
 import { ApiResponse } from "../middlewares/ApiResponse.js";
 import bcrypt from "bcryptjs";
 import { logger } from "../utils/logger.js"; // Custom logger utility
-import { validateUserRegistration, validateLogin, validatePasswordChange, validateUserUpdate } from "../validations/userValidation.js"; // Import validation functions
+import {
+  validateUserRegistration,
+  validateLogin,
+  validatePasswordChange,
+  validateUserUpdate,
+} from "../validations/userValidation.js"; // Import validation functions
 import { Profile } from "../models/profile.model.js";
+import jwt from "jsonwebtoken";
+
+const signInToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+};
 
 // Register User
-const registerUser = asyncHandler(async (req, res) => {
-  const { email, username, password } = req.body;
+const signup = asyncHandler(async (req, res) => {
+  const { email, username, password, age, gender, genderPreference } = req.body;
 
   // Validate inputs using custom validation (could be Joi or express-validator)
   const { error } = validateUserRegistration(req.body);
@@ -20,24 +32,41 @@ const registerUser = asyncHandler(async (req, res) => {
   // Check if user exists
   const existingUser = await User.findOne({ $or: [{ username }, { email }] });
   if (existingUser) {
-    throw new ApiError(409, "User with email or username already exists");
+    throw new ApiError(409, "User with email or  username already exists");
   }
 
   // Create new user
-  const user = new User({ email, username: username.toLowerCase(), password });
+  const user = new User({
+    email,
+    username: username.toLowerCase(),
+    password,
+    age,
+    gender,
+    genderPreference,
+  });
   await user.save();
 
   // Save session
-  req.session.user = { id: user._id, username: user.username };
+  // req.session.user = { id: user._id,    username: user.   username };
 
+  const token = signInToken(user._id);
+  res.cookie("jwt", token, {
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    sampSite: "strict",
+    secure: true,
+  });
   const createdUser = await User.findById(user._id).select("-password").lean();
   logger.info(`New user registered: ${createdUser.username}`);
 
-  return res.status(201).json(new ApiResponse(201, createdUser, "User registered successfully"));
+  return res
+    .status(201)
+    .json(new ApiResponse(201, createdUser, "User registered successfully"));
 });
 
 // Login User
-const loginUser = asyncHandler(async (req, res) => {
+const login = asyncHandler(async (req, res) => {
+  console.log("Request body:", req.body);
   const { email, password } = req.body;
 
   // Validate inputs
@@ -47,32 +76,51 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 
   // Find user
-  const user = await User.findOne({ email: email.toLowerCase() }).select("+password");
+  const user = await User.findOne({ email: email.toLowerCase() }).select(
+    "+password"
+  );
   if (!user || !(await user.isPasswordCorrect(password))) {
     logger.warn(`Failed login attempt for ${email}`);
     throw new ApiError(401, "Invalid credentials");
   }
 
   // Save session
-  req.session.user = { id: user._id, username: user.username };
+  // req.session.user = { id: user._id,    username: user.   username };
+
+  const token = signInToken(user._id);
+  res.cookie("jwt", token, {
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+    httpOnly: true, // prevents XSS attacks
+    sameSite: "strict", // prevents CSRF attacks
+    secure: true,
+  });
 
   const loggedInUser = await User.findById(user._id).select("-password").lean();
   logger.info(`User logged in: ${loggedInUser.username}`);
 
-  return res.status(200).json(new ApiResponse(200, loggedInUser, "User logged in successfully"));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, loggedInUser, "User logged in successfully"));
 });
 
 // Logout User
-const logoutUser = asyncHandler(async (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      logger.error(`Error destroying session: ${err.message}`);
-      throw new ApiError(500, "Logout failed");
-    }
-    res.clearCookie("connect.sid");
-    logger.info("User logged out");
-    return res.status(200).json(new ApiResponse(200, {}, "User logged out successfully"));
-  });
+// const logoutUser = asyncHandler(async (req, res) => {
+//   req.session.destroy((err) => {
+//     if (err) {
+//       logger.error(`Error destroying session: ${err.message}`);
+//       throw new ApiError(500, "Logout failed");
+//     }
+//     res.clearCookie("connect.sid");
+//     logger.info("User logged out");
+//     return res.status(200).json(new ApiResponse(200, {}, "User logged out successfully"));
+//   });
+// });
+
+const logout = asyncHandler(async (req, res) => {
+  res.clearCookie("jwt");
+  res
+    .status(200)
+    .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 
 // Change Password
@@ -94,21 +142,39 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   await user.save({ validateBeforeSave: false });
 
   logger.info(`Password changed for user: ${user.username}`);
-  return res.status(200).json(new ApiResponse(200, {}, "Password changed successfully"));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password changed successfully"));
 });
 
 // Get Current User
-const getCurrentUser = asyncHandler(async (req, res) => {
-  if (!req.session.user) {
-    throw new ApiError(401, "Not authenticated");
-  }
+// const getCurrentUser = asyncHandler(async (req, res) => {
+//   if (!req.session.user) {
+//     throw new ApiError(401, "Not authenticated");
+//   }
 
-  const user = await User.findById(req.session.user.id).select("-password").lean();
-  if (!user) {
+//   const user = await User.findById(req.session.user.id)
+//     .select("-password")
+//     .lean();
+//   if (!user) {
+//     throw new ApiError(404, "User not found");
+//   }
+
+//   return res
+//     .status(200)
+//     .json(new ApiResponse(200, user, "User fetched successfully"));
+// });
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  // At this point, req.user is already populated by the protect middleware
+  if (!req.user) {
     throw new ApiError(404, "User not found");
   }
 
-  return res.status(200).json(new ApiResponse(200, user, "User fetched successfully"));
+  // Respond with the user's data
+  res
+    .status(200)
+    .json(new ApiResponse(200, req.user, "User details fetched successfully"));
 });
 
 // Update User Info
@@ -137,7 +203,9 @@ const updateUser = asyncHandler(async (req, res) => {
   ).select("-password");
 
   logger.info(`User updated: ${user.username}`);
-  return res.status(200).json(new ApiResponse(200, user, "Account details updated successfully"));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Account details updated successfully"));
 });
 
 // Delete User
@@ -148,46 +216,44 @@ const deleteUser = asyncHandler(async (req, res) => {
   if (!user) throw new ApiError(404, "User not found");
 
   logger.info(`User deleted: ${userId}`);
-  return res.status(200).json(new ApiResponse(200, {}, "User deleted successfully"));
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "User deleted successfully"));
 });
 
 const getAllUsers = asyncHandler(async (req, res) => {
   try {
-      // Fetch all users excluding the password field
-      const users = await User.find().select("-password").lean() || []; // Ensure users is an array
-      console.log("Fetched users:", users); // Log the fetched users
+    // Fetch all users excluding the password field
+    const users = (await User.find().select("-password").lean()) || []; // Ensure users is an array
+    console.log("Fetched users:", users); // Log the fetched users
 
-      // Check if users is an array before proceeding
-      if (!Array.isArray(users)) {
-          throw new Error("Users is not an array"); // Custom error message for debugging
-      }
+    // Check if users is an array before proceeding
+    if (!Array.isArray(users)) {
+      throw new Error("Users is not an array"); // Custom error message for debugging
+    }
 
-      // Manually populate the profiles after fetching users
-      for (const user of users) {
-          const profile = await Profile.findOne({ user: user._id }).select('bio age gender').lean(); // Ensure to convert to plain object
-          user.profile = profile || {}; // Fallback to an empty object if no profile found
-      }
+    // Manually populate the profiles after fetching users
+    for (const user of users) {
+      const profile = await Profile.findOne({ user: user._id })
+        .select("bio age gender")
+        .lean(); // Ensure to convert to plain object
+      user.profile = profile || {}; // Fallback to an empty object if no profile found
+    }
 
-      // Check if any users were found
-      if (users.length === 0) {
-          return res.status(404).json(new ApiResponse(404, null, "No users found"));
-      }
+    // Check if any users were found
+    if (users.length === 0) {
+      return res.status(404).json(new ApiResponse(404, null, "No users found"));
+    }
 
-      return res.status(200).json(new ApiResponse(200, users, "Users fetched successfully"));
+    return res
+      .status(200)
+      .json(new ApiResponse(200, users, "Users fetched successfully"));
   } catch (error) {
-      console.error("Error fetching users:", error.message); // Log the error message for debugging
-      return res.status(500).json(new ApiResponse(500, null, "Error fetching users"));
+    console.error("Error fetching users:", error.message); // Log the error message for debugging
+    return res
+      .status(500)
+      .json(new ApiResponse(500, null, "Error fetching users"));
   }
 });
 
-
-export {
-  registerUser,
-  loginUser,
-  getCurrentUser,
-  updateUser,
-  deleteUser,
-  getAllUsers,
-  logoutUser,
-  changeCurrentPassword,
-};
+export { signup, login, getCurrentUser, logout, updateUser };
